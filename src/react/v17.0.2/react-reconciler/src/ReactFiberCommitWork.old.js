@@ -1159,18 +1159,22 @@ function commitPlacement(finishedWork: Fiber): void {
   const parentStateNode = parentFiber.stateNode;
   switch (parentFiber.tag) {
     case HostComponent:
+      console.log(finishedWork, 'parentFiber is HostComponent' );
       parent = parentStateNode;
       isContainer = false;
       break;
     case HostRoot:
+      console.log(finishedWork, 'parentFiber is HostRoot' );
       parent = parentStateNode.containerInfo;
       isContainer = true;
       break;
     case HostPortal:
+      console.log(finishedWork, 'parentFiber is HostPortal' );
       parent = parentStateNode.containerInfo;
       isContainer = true;
       break;
     case FundamentalComponent:
+      console.log(finishedWork, 'parentFiber is FundamentalComponent' );
       if (enableFundamentalAPI) {
         parent = parentStateNode.instance;
         isContainer = false;
@@ -1193,9 +1197,12 @@ function commitPlacement(finishedWork: Fiber): void {
   const before = getHostSibling(finishedWork);
   // We only have the top Fiber that was inserted but we need to recurse down its
   // children to find all the terminal nodes.
+  // parentStateNode是否是rootFiber
   if (isContainer) {
+    console.log('isContainer',finishedWork, before, parent);
     insertOrAppendPlacementNodeIntoContainer(finishedWork, before, parent);
   } else {
+    console.log('notContainer', finishedWork, before, parent);
     insertOrAppendPlacementNode(finishedWork, before, parent);
   }
 }

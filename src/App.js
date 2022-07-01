@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import ReactDOM from 'react-dom';
 import State from './components/State'
 import LanesDemo from './components/LanesDemo'
 import AppSibling from './components/AppSibling'
@@ -11,6 +12,11 @@ import Hooks from "./components/Hooks";
 import EventDemo from "./components/EventDemo";
 import ContextDemo from "./components/Context";
 import './App.css';
+import { fiberRoot } from './global';
+
+
+// import BW from './beginwork'
+import R from './render/render'
 
 // propsDiff
 /*class App extends React.Component {
@@ -39,10 +45,25 @@ function App() {
   // return <TasksWithDifferentPriorities/>
 
   // context
-  return <ContextDemo/>
+  // return <ContextDemo/>
 
   // diff 算法
   // return <Diff ref={'diffRef'}/>
+  const change = () => {
+    fiberRoot.cur.unmount()
+    console.log(fiberRoot.cur);
+    // fiberRoot.cur.render('hello')
+  }
+
+
+  // beginWork
+  // return <BW></BW>
+  return <>
+    <R></R>
+    <div>
+      <span onClick={change}>lll</span>
+    </div>
+  </>
 }
 
 export default App;

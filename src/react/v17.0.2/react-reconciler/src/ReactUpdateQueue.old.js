@@ -183,27 +183,87 @@ export function cloneUpdateQueue<State>(
 
 export function createUpdate(eventTime: number, lane: Lane): Update<*> {
   const update: Update<*> = {
-    eventTime,
-    lane,
+    eventTime, // update的产生时间，若该update一直因为优先级不够而得不到执行，那么它会超时，会被立刻执行
+    lane, // update的优先级，即更新优先级
 
-    tag: UpdateState,
-    payload: null,
-    callback: null,
+    tag: UpdateState, // 表示更新是哪种类型（UpdateState，ReplaceState，ForceUpdate，CaptureUpdate）
+    payload: null,  //更新所携带的状态。
+    // - 类组件中：有两种可能，对象（{}），和函数（(prevState, nextProps):newState => {}）
+    // - 根组件中：是React.element，即ReactDOM.render的第一个参数
+    callback: null, // 可理解为setState的回调
 
-    next: null,
+    next: null, // 指向下一个update的指针
   };
   return update;
 }
 
 export function enqueueUpdate<State>(fiber: Fiber, update: Update<State>) {
-  const updateQueue = fiber.updateQueue;
-  if (updateQueue === null) {
+  const updateQueue = fiber.updateQueue; // 拿到fiber结构的updateQueue
+  if (updateQueue === null) { // 仅在fiber没有挂载的情况下发生
     // Only occurs if the fiber has been unmounted.
     return;
   }
 
-  const sharedQueue: SharedQueue<State> = (updateQueue: any).shared;
-  const pending = sharedQueue.pending;
+  const sharedQueue: SharedQueue<State> = (updateQueue: any).shared; 
+  const pending = sharedQueue.pending; 
+  // updateQueue的结构
+  // updateQueue: {
+  //   baseState: {val: 3, renderCount: 40001}    // 前一次更新计算得出的状态，它是第一个被跳过的update之前的那些update计算得出的state。会以它为基础计算本次的state
+  //   effects: null    // 数组。保存update.callback !== null的Update
+  //   firstBaseUpdate: null    // 前一次更新时updateQueue中第一个被跳过的update对象
+  //   lastBaseUpdate: null   // 前一次更新中，updateQueue中以第一个被跳过的update为起点一直到的最后一个update截取的队列中的最后一个update。
+  //   shared: {
+  //     pending: null   // 存储着本次更新的update队列，是实际的updateQueue。shared的意思是current节点与workInProgress节点共享一条更新队列。
+  //   }
+  // }
+
+  /**
+   * 构建环状更新链表
+   * 使用环状方便定位到链表的第一个元素。updateQueue指向它的最后一个update，updateQueue.next指向它的第一个update
+   * 若不使用环状链表，updateQueue指向最后一个元素，需要遍历才能获取链表首部。即使将updateQueue指向第一个元素，
+   * 那么新增update时仍然要遍历到尾部才能将新增的接入链表。而环状链表，只需记住尾部，无需遍历操作就可以找到首部
+   * 即如果不做成环状，要在获取头部或者结尾都需要遍历一遍
+   * 形成过程
+   * 链表为空，update的next指向自己,此时记为u1
+   * u1 --> u1
+   *  ^      |
+   * |_______|
+   * 
+   * pending -> u1 --> u1
+   *            ^      | 
+   *            |______|
+   * 
+   * 存在更新，此时出现u2
+   * update.next = pending.next; 把u2的next指向pending的next，此时pending指向的就是u1, 即u1的next===》得到u1
+   * u2 --> u1 <-
+   *        |---|   u1的next
+   * pending.next = update; 把u1的next指向u2
+   *  u2 --> u1  
+   *  ^      | 
+   * |_______|
+   * sharedQueue.pending = update; 把pending指向u2
+   * *pending -> u2 --> u1
+   *            ^      |     u1的next
+   *            |______|
+   * 又来一个u3
+   * 把u3的next指向u2的next,即u3的next指向u1,此时的情况, u1的next指向u2， u2的next指向u1
+   * u3 --> u1 --> u2
+   *        ^       |   u2的next
+   *        |-------|
+   * 把u2的next指向u3
+   * u3 --> u1 --> u2
+   * ^             |
+   * |-------------|
+   * pending -> u3 --> u1 --> u2
+   *            ^             |
+   *            |-------------|
+   * 由上面就可以知道，当有n(n>1)个更新时会有如下结构
+   * pending -> un --> u1->...un-1
+   *            ^             |
+   *            |-------------|
+   * 
+   * 
+   */
   if (pending === null) {
     // This is the first update. Create a circular list.
     update.next = update;

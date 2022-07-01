@@ -28156,6 +28156,7 @@ function ReactDOMRoot(container, options) {
 }
 
 function ReactDOMBlockingRoot(container, tag, options) {
+  console.log(this);
   this._internalRoot = createRootImpl(container, tag, options);
 }
 

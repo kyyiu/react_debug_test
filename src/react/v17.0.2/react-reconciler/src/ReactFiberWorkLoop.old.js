@@ -371,6 +371,7 @@ export function getWorkInProgressRoot(): FiberRoot | null {
 }
 
 export function requestEventTime() {
+  console.log(executionContext, RenderContext, CommitContext, NoContext, NoTimestamp, currentEventTime)
   if ((executionContext & (RenderContext | CommitContext)) !== NoContext) {
     // We're inside React, so it's fine to read the actual time.
     return now();
@@ -392,6 +393,7 @@ export function getCurrentTime() {
 export function requestUpdateLane(fiber: Fiber): Lane {
   // Special cases
   const mode = fiber.mode;
+  console.log(mode)
   if ((mode & BlockingMode) === NoMode) {
     return (SyncLane: Lane);
   } else if ((mode & ConcurrentMode) === NoMode) {
@@ -1893,6 +1895,7 @@ function commitRootImpl(root, renderPriorityLevel) {
     // no more pending effects.
     // TODO: Might be better if `flushPassiveEffects` did not automatically
     // flush synchronous work at the end, to avoid factoring hazards like this.
+    // 触发useEffect回调与其他同步任务。由于这些任务可能触发新的渲染，所以这里要一直遍历执行直到没有任务
     flushPassiveEffects();
   } while (rootWithPendingPassiveEffects !== null);
   flushRenderPhaseStrictModeWarningsInDEV();
@@ -1902,6 +1905,8 @@ function commitRootImpl(root, renderPriorityLevel) {
     'Should not already be working.',
   );
 
+  // root指 fiberRootNode
+  // root.finishedWork指当前应用的rootFiber
   const finishedWork = root.finishedWork;
   const lanes = root.finishedLanes;
 
@@ -1939,6 +1944,7 @@ function commitRootImpl(root, renderPriorityLevel) {
 
   // commitRoot never returns a continuation; it always finishes synchronously.
   // So we can clear these now to allow a new callback to be scheduled.
+  // 重置Scheduler绑定的回调函数
   root.callbackNode = null;
 
   // Update the first and last pending times on this root. The new first
@@ -1949,6 +1955,7 @@ function commitRootImpl(root, renderPriorityLevel) {
   // Clear already finished discrete updates in case that a later call of
   // `flushDiscreteUpdates` starts a useless render pass which may cancels
   // a scheduled timeout.
+  // 清除已完成的discrete updates，例如：用户鼠标点击触发的更新。
   if (rootsWithPendingDiscreteUpdates !== null) {
     if (
       !hasDiscreteLanes(remainingLanes) &&
@@ -1958,6 +1965,7 @@ function commitRootImpl(root, renderPriorityLevel) {
     }
   }
 
+  // 重置全局变量
   if (root === workInProgressRoot) {
     // We can reset these now that they are finished.
     workInProgressRoot = null;
@@ -1969,6 +1977,12 @@ function commitRootImpl(root, renderPriorityLevel) {
     // times out.
   }
 
+
+  // 将effectList赋值给firstEffect
+  // 由于每个fiber的effectList只包含他的子孙节点
+  // 所以根节点如果有effectTag则不会被包含进来
+  // 所以这里将有effectTag的根节点插入到effectList尾部
+  // 这样才能保证有effect的fiber都在effectList中
   // Get the list of effects.
   let firstEffect;
   if (finishedWork.flags > PerformedWork) {
@@ -1983,17 +1997,19 @@ function commitRootImpl(root, renderPriorityLevel) {
       firstEffect = finishedWork;
     }
   } else {
-    // There is no effect on the root.
+    // There is no effect on the root.  根节点没有effectTag
     firstEffect = finishedWork.firstEffect;
   }
 
+  //// before mutation 开始
   if (firstEffect !== null) {
     let previousLanePriority;
     if (decoupleUpdatePriorityFromScheduler) {
+      // 保存之前的优先级，以同步优先级执行，执行完毕后恢复之前优先级
       previousLanePriority = getCurrentUpdateLanePriority();
       setCurrentUpdateLanePriority(SyncLanePriority);
     }
-
+    // 将当前上下文标记为CommitContext，作为commit阶段的标志
     const prevExecutionContext = executionContext;
     executionContext |= CommitContext;
     const prevInteractions = pushInteractions(root);
@@ -2008,6 +2024,7 @@ function commitRootImpl(root, renderPriorityLevel) {
     // The first phase a "before mutation" phase. We use this phase to read the
     // state of the host tree right before we mutate it. This is where
     // getSnapshotBeforeUpdate is called.
+    // 处理focus状态
     focusedInstanceHandle = prepareForCommit(root.containerInfo);
     shouldFireAfterActiveInstanceBlur = false;
 
@@ -2257,6 +2274,7 @@ function commitBeforeMutationEffects() {
   while (nextEffect !== null) {
     const current = nextEffect.alternate;
 
+    // ...focus blur相关
     if (!shouldFireAfterActiveInstanceBlur && focusedInstanceHandle !== null) {
       if ((nextEffect.flags & Deletion) !== NoFlags) {
         if (doesFiberContain(nextEffect, focusedInstanceHandle)) {
@@ -2277,6 +2295,7 @@ function commitBeforeMutationEffects() {
     }
 
     const flags = nextEffect.flags;
+    // 调用getSnapshotBeforeUpdate
     if ((flags & Snapshot) !== NoFlags) {
       setCurrentDebugFiberInDEV(nextEffect);
 
@@ -2284,13 +2303,17 @@ function commitBeforeMutationEffects() {
 
       resetCurrentDebugFiberInDEV();
     }
+    // 调度useEffect
     if ((flags & Passive) !== NoFlags) {
       // If there are passive effects, schedule a callback to flush at
       // the earliest opportunity.
       if (!rootDoesHavePassiveEffects) {
         rootDoesHavePassiveEffects = true;
         scheduleCallback(NormalSchedulerPriority, () => {
+          // 触发useEffect
           flushPassiveEffects();
+          // 在此处，被异步调度的回调函数就是触发useEffect的方法flushPassiveEffects。
+          // useEffect如何被异步调度，以及为什么要异步（而不是同步）调度
           return null;
         });
       }
@@ -2304,15 +2327,17 @@ function commitMutationEffects(
   renderPriorityLevel: ReactPriorityLevel,
 ) {
   // TODO: Should probably move the bulk of this function to commitWork.
+  // 遍历effectList
   while (nextEffect !== null) {
     setCurrentDebugFiberInDEV(nextEffect);
 
     const flags = nextEffect.flags;
 
+    // 根据 ContentReset effectTag重置文字节点
     if (flags & ContentReset) {
       commitResetTextContent(nextEffect);
     }
-
+    // 更新ref
     if (flags & Ref) {
       const current = nextEffect.alternate;
       if (current !== null) {
@@ -2331,8 +2356,10 @@ function commitMutationEffects(
     // updates, and deletions. To avoid needing to add a case for every possible
     // bitmap value, we remove the secondary effects from the effect tag and
     // switch on that value.
+    // 根据 effectTag 分别处理
     const primaryFlags = flags & (Placement | Update | Deletion | Hydrating);
     switch (primaryFlags) {
+      // 插入DOM
       case Placement: {
         commitPlacement(nextEffect);
         // Clear the "placement" from effect tag so that we know that this is
@@ -2342,6 +2369,7 @@ function commitMutationEffects(
         nextEffect.flags &= ~Placement;
         break;
       }
+      // 插入DOM 并 更新DOM
       case PlacementAndUpdate: {
         // Placement
         commitPlacement(nextEffect);
@@ -2354,10 +2382,12 @@ function commitMutationEffects(
         commitWork(current, nextEffect);
         break;
       }
+      // SSR
       case Hydrating: {
         nextEffect.flags &= ~Hydrating;
         break;
       }
+      // SSR
       case HydratingAndUpdate: {
         nextEffect.flags &= ~Hydrating;
 
@@ -2366,11 +2396,13 @@ function commitMutationEffects(
         commitWork(current, nextEffect);
         break;
       }
+      // 更新dom
       case Update: {
         const current = nextEffect.alternate;
         commitWork(current, nextEffect);
         break;
       }
+      // 删除dom
       case Deletion: {
         commitDeletion(root, nextEffect, renderPriorityLevel);
         break;

@@ -60,6 +60,7 @@ import {
 } from 'react-reconciler/src/ReactRootTags';
 
 function ReactDOMRoot(container: Container, options: void | RootOptions) {
+  console.log('rrrr', this);
   this._internalRoot = createRootImpl(container, ConcurrentRoot, options);
 }
 

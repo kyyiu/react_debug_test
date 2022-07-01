@@ -193,20 +193,24 @@ export function applyDerivedStateFromProps(
 const classComponentUpdater = {
   isMounted,
   enqueueSetState(inst, payload, callback) {
-    const fiber = getInstance(inst);
-    const eventTime = requestEventTime();
-    const lane = requestUpdateLane(fiber);
-
-    const update = createUpdate(eventTime, lane);
-    update.payload = payload;
+    // console.log('ddd2', 'enqueueSetState---inst', inst)  // 调用setState的组件实例
+    // console.log('ddd2', 'enqueueSetState---payload', payload, '------------', typeof payload) // 有两种，函数或者对象
+    // console.log('ddd2', 'enqueueSetState---callback', callback)  //  setState中的回调
+    const fiber = getInstance(inst); // 获取组件实例的Fiber结构
+    const eventTime = requestEventTime(); // 事件时间
+    const lane = requestUpdateLane(fiber);  // 优先级
+    console.log(fiber.updateQueue.shared.pending)
+    const update = createUpdate(eventTime, lane); // 创建updater，数据结构载体
+    update.payload = payload; // 挂载要更新的数据信息
     if (callback !== undefined && callback !== null) {
       if (__DEV__) {
         warnOnInvalidCallback(callback, 'setState');
       }
-      update.callback = callback;
+      update.callback = callback; // 如果更新有回调，挂载这个函数
     }
 
-    enqueueUpdate(fiber, update);
+    enqueueUpdate(fiber, update); // 把这个更新结构挂到组件fiber的updateQueue里面, 详细过程到enqueueUpdate函数中查看
+    console.log(fiber.updateQueue.shared.pending)
     scheduleUpdateOnFiber(fiber, lane, eventTime);
 
     if (__DEV__) {
@@ -223,6 +227,7 @@ const classComponentUpdater = {
     }
   },
   enqueueReplaceState(inst, payload, callback) {
+    console.log('ddd2','enqueueReplaceState')
     const fiber = getInstance(inst);
     const eventTime = requestEventTime();
     const lane = requestUpdateLane(fiber);

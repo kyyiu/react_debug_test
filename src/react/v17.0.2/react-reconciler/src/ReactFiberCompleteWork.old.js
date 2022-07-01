@@ -486,12 +486,14 @@ if (supportsMutation) {
         currentHostContext,
       );
     }
+    // children没变 并且 更新列表为空  直接把显示中的dom给内存树
     if (childrenUnchanged && updatePayload === null) {
       // No changes, just reuse the existing instance.
       // Note that this might release a previous clone.
       workInProgress.stateNode = currentInstance;
       return;
     }
+    // 为fiber创建对应DOM节点
     const newInstance = cloneInstance(
       currentInstance,
       updatePayload,
@@ -502,6 +504,7 @@ if (supportsMutation) {
       childrenUnchanged,
       recyclableInstance,
     );
+    // 与update逻辑中的updateHostComponent类似的处理props的过程
     if (
       finalizeInitialChildren(
         newInstance,
@@ -513,6 +516,7 @@ if (supportsMutation) {
     ) {
       markUpdate(workInProgress);
     }
+    // DOM节点赋值给fiber.stateNode
     workInProgress.stateNode = newInstance;
     if (childrenUnchanged) {
       // If there are no other effects in this tree, we need to flag this node as having one.
@@ -521,6 +525,7 @@ if (supportsMutation) {
       markUpdate(workInProgress);
     } else {
       // If children might have changed, we have to add them all to the set.
+      // 将子孙DOM节点插入刚生成的DOM节点中
       appendAllChildren(newInstance, workInProgress, false, false);
     }
   };
@@ -647,6 +652,7 @@ function completeWork(
   workInProgress: Fiber,
   renderLanes: Lanes,
 ): Fiber | null {
+  // console.log('completeWork_old', current, workInProgress);
   const newProps = workInProgress.pendingProps;
 
   switch (workInProgress.tag) {

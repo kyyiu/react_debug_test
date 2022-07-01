@@ -238,6 +238,7 @@ export function reconcileChildren(
   renderLanes: Lanes,
 ) {
   if (current === null) {
+    console.log('reconcileChildren____mount', current, workInProgress);
     // If this is a fresh new component that hasn't been rendered yet, we
     // won't update its child set by applying minimal side-effects. Instead,
     // we will add them all to the child before it gets rendered. That means
@@ -249,6 +250,7 @@ export function reconcileChildren(
       renderLanes,
     );
   } else {
+    console.log('reconcileChildren____update', current, workInProgress);
     // If the current child is the same as the work in progress, it means that
     // we haven't yet started any work on these children. Therefore, we use
     // the clone algorithm to create a copy of all the current children.
@@ -3081,10 +3083,11 @@ function remountFiber(
 }
 
 function beginWork(
-  current: Fiber | null,
-  workInProgress: Fiber,
+  current: Fiber | null, // 当前组件对应的Fiber节点在上一次更新时的Fiber节点，即workInProgress.alternate, 显示中的Fiber节点
+  workInProgress: Fiber, // 当前组件对应的Fiber节点, 内存中的Fiber节点
   renderLanes: Lanes,
 ): Fiber | null {
+  // console.log('bgeginWork_old', current, workInProgress);
   const updateLanes = workInProgress.lanes;
 
   if (__DEV__) {
