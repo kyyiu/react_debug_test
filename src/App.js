@@ -50,8 +50,8 @@ function App() {
   // diff 算法
   // return <Diff ref={'diffRef'}/>
   const change = () => {
-    fiberRoot.cur.unmount()
-    console.log(fiberRoot.cur);
+    // fiberRoot.cur.unmount()
+    // console.log(fiberRoot.cur);
     // fiberRoot.cur.render('hello')
   }
 

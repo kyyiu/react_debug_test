@@ -1099,22 +1099,46 @@ function isHostParent(fiber: Fiber): boolean {
   );
 }
 
+
+// 获取最近的dom父节点节点的兄弟dom节点
 function getHostSibling(fiber: Fiber): ?Instance {
   // We're going to search forward into the tree until we find a sibling host
   // node. Unfortunately, if multiple insertions are done in a row we have to
   // search past them. This leads to exponential search for the next sibling.
   // TODO: Find a more efficient way to do this.
+  console.log('getHostSibling', fiber);
   let node: Fiber = fiber;
+  /**
+   * 
+   * 例子
+   * div -> comA -> comA -> comA  这里的comA都是插入tag，最终会都直接把对应的dom插入div
+   * 
+   * div -> A -> comA -> comA
+   *     -> B -> span
+   * 这里 comA为插入tag， AB均已经存在, comA会回到A，A在去B， 最终找到span, 然后在div和span中间插入comA的dom
+   */
   siblings: while (true) {
     // If we didn't find anything, let's try the next sibling.
+    // 目标节点的兄弟节点为null
     while (node.sibling === null) {
+      // 为null那么继续判断父节点是否为DOM节点（parent），是就直接插入（返回null值）
       if (node.return === null || isHostParent(node.return)) {
         // If we pop out of the root or hit the parent the fiber we are the
         // last sibling.
         return null;
       }
+      // 继续向上寻找
       node = node.return;
     }
+
+    // 当兄弟节点不为null时，
+    // 判断是否为DOM节点，
+    // 如果不是DOM节点，就判断是否为需要插入的节点，
+    // 是的话直接continue继续寻找，
+    // 不是的话寻找其子节点，
+    // 没有子节点同样continue，
+    // 有的话按照子节点遍历。
+
     node.sibling.return = node.return;
     node = node.sibling;
     while (
@@ -1124,6 +1148,7 @@ function getHostSibling(fiber: Fiber): ?Instance {
     ) {
       // If it is not host node and, we might have a host node inside it.
       // Try to search down until we find one.
+      // node不是dom节点，但是可能node里面有，继续寻找
       if (node.flags & Placement) {
         // If we don't have a child, try the siblings instead.
         continue siblings;
@@ -1137,7 +1162,15 @@ function getHostSibling(fiber: Fiber): ?Instance {
         node = node.child;
       }
     }
+    console.log('node.flags---', node.flags, node);
     // Check if this host node is stable or about to be placed.
+    // 如果兄弟节点是DOM节点，
+    // 那就查看是否为需要插入的节点，
+    // 是的话继续循环，不是的话就找到了before节点。
+    // 另外，当要插入的节点并非DOM节点时，
+    // 就需要寻找它所有的DOM子节点，注意
+    // ，这里只插入所有分支的第一层子节点即可，
+    // 因为这是自底向上的插入方式，底部DOM节点已经插入过其父节点。最终通过parent以及before节点完成了DOM节点的插入
     if (!(node.flags & Placement)) {
       // Found it!
       return node.stateNode;
@@ -1150,8 +1183,11 @@ function commitPlacement(finishedWork: Fiber): void {
     return;
   }
 
+  console.log('commitPlacement', finishedWork);
+
   // Recursively insert all host nodes into the parent.
   const parentFiber = getHostParentFiber(finishedWork);
+  console.log('commitPlacement_finishedWork_s_parentFiber', parentFiber);
 
   // Note: these two variables *must* always be updated together.
   let parent;
@@ -1195,6 +1231,7 @@ function commitPlacement(finishedWork: Fiber): void {
   }
 
   const before = getHostSibling(finishedWork);
+  console.log('commitPlacement_finishedWork_s_before', before);
   // We only have the top Fiber that was inserted but we need to recurse down its
   // children to find all the terminal nodes.
   // parentStateNode是否是rootFiber
