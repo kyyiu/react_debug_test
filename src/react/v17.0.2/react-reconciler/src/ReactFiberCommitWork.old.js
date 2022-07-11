@@ -1121,6 +1121,7 @@ function getHostSibling(fiber: Fiber): ?Instance {
     // If we didn't find anything, let's try the next sibling.
     // 目标节点的兄弟节点为null
     while (node.sibling === null) {
+      console.log('getHostSibling_sibling_null', node);
       // 为null那么继续判断父节点是否为DOM节点（parent），是就直接插入（返回null值）
       if (node.return === null || isHostParent(node.return)) {
         // If we pop out of the root or hit the parent the fiber we are the
@@ -1129,6 +1130,7 @@ function getHostSibling(fiber: Fiber): ?Instance {
       }
       // 继续向上寻找
       node = node.return;
+      console.log('getHostSibling_sibling_null_next_node_value', node);
     }
 
     // 当兄弟节点不为null时，
@@ -1146,6 +1148,7 @@ function getHostSibling(fiber: Fiber): ?Instance {
       node.tag !== HostText &&
       node.tag !== DehydratedFragment
     ) {
+      console.log('getHostSibling_sibling_not_null', node);
       // If it is not host node and, we might have a host node inside it.
       // Try to search down until we find one.
       // node不是dom节点，但是可能node里面有，继续寻找
@@ -1162,7 +1165,7 @@ function getHostSibling(fiber: Fiber): ?Instance {
         node = node.child;
       }
     }
-    console.log('node.flags---', node.flags, node);
+    console.log('getHostSibling_node.flags---', node.flags, node);
     // Check if this host node is stable or about to be placed.
     // 如果兄弟节点是DOM节点，
     // 那就查看是否为需要插入的节点，

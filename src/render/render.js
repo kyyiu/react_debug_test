@@ -27,7 +27,7 @@ class RenderTest extends React.Component {
   foo = () => {
     const ne = this.state.arr.slice()
     this.setState({
-      arr: [<TC></TC>, <TC></TC>]
+      arr: [<div>1</div>,<TC></TC>, <TC></TC>]
     })
   }
 
@@ -38,6 +38,7 @@ class RenderTest extends React.Component {
 
     return (
       <div onClick={this.foo}>
+        <div>aaa</div>
         {arr}
         <TC1></TC1>
       </div>
