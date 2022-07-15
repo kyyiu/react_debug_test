@@ -3087,6 +3087,7 @@ function beginWork(
   workInProgress: Fiber, // 当前组件对应的Fiber节点, 内存中的Fiber节点
   renderLanes: Lanes,
 ): Fiber | null {
+  console.log('beginWork', workInProgress);
   // console.log('bgeginWork_old', current, workInProgress);
   const updateLanes = workInProgress.lanes;
 

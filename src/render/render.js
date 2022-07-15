@@ -4,7 +4,7 @@ import React from "react";
 function TC() {
   return (
     <div className="tc">
-      <span>tc</span>
+      <span>{Math.random()}</span>
     </div>
   )
 }
@@ -25,11 +25,19 @@ class RenderTest extends React.Component {
   }
 
   foo = () => {
-    const ne = this.state.arr.slice()
     this.setState({
       arr: [<div>1</div>,<TC></TC>, <TC></TC>]
     })
   }
+
+  // React.createElement("div", {
+  //   onClick: (void 0).foo
+  // }, 
+  // [/*#__PURE__*/React.createElement(TC1, null)], 
+  // /*#__PURE__*/React.createElement("div", null, "aaa"), 
+  // arr, 
+  // [1].map(e => e + 3)
+  // /*#__PURE__*/React.createElement(TC1, null));
 
   render() {
     const {
@@ -38,11 +46,11 @@ class RenderTest extends React.Component {
 
     return (
       <div onClick={this.foo}>
-        <div>aaa</div>
         {arr}
         <TC1></TC1>
       </div>
     )
+    
 
     return (
       <div className="f1" onClick={this.foo}>

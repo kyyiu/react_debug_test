@@ -1100,7 +1100,7 @@ function isHostParent(fiber: Fiber): boolean {
 }
 
 
-// 获取最近的dom父节点节点的兄弟dom节点
+// 获取最近的dom父节点节点的兄弟dom节点, place时会使用
 function getHostSibling(fiber: Fiber): ?Instance {
   // We're going to search forward into the tree until we find a sibling host
   // node. Unfortunately, if multiple insertions are done in a row we have to
@@ -1124,6 +1124,7 @@ function getHostSibling(fiber: Fiber): ?Instance {
       console.log('getHostSibling_sibling_null', node);
       // 为null那么继续判断父节点是否为DOM节点（parent），是就直接插入（返回null值）
       if (node.return === null || isHostParent(node.return)) {
+        console.log('getHostSibling_direct_insert', node.return);
         // If we pop out of the root or hit the parent the fiber we are the
         // last sibling.
         return null;
@@ -1176,6 +1177,7 @@ function getHostSibling(fiber: Fiber): ?Instance {
     // 因为这是自底向上的插入方式，底部DOM节点已经插入过其父节点。最终通过parent以及before节点完成了DOM节点的插入
     if (!(node.flags & Placement)) {
       // Found it!
+      console.log('getHostSibling_find_before', node)
       return node.stateNode;
     }
   }
