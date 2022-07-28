@@ -1,10 +1,10 @@
 import React from "react";
+let start, end
 
-
-function TC() {
+function TC(p) {
   return (
     <div className="tc">
-      <span>{Math.random()}</span>
+      <span>{p.children}</span>
     </div>
   )
 }
@@ -17,6 +17,14 @@ function TC1() {
   )
 }
 
+function HostBefore(prop) {
+  return <div>
+    {
+      prop.children
+    }
+  </div>
+}
+
 class RenderTest extends React.Component {
 
   state = {
@@ -25,11 +33,12 @@ class RenderTest extends React.Component {
   }
 
   foo = () => {
+    console.log('HostBefore_start', start = +new Date());
     this.setState({
-      arr: [<div>1</div>,<TC></TC>, <TC></TC>]
+      arr: [...this.state.arr, ...Array(100).fill(0)]
     })
   }
-
+  
   // React.createElement("div", {
   //   onClick: (void 0).foo
   // }, 
@@ -39,6 +48,10 @@ class RenderTest extends React.Component {
   // [1].map(e => e + 3)
   // /*#__PURE__*/React.createElement(TC1, null));
 
+  componentDidUpdate() {
+    console.log('HostBefore_end', +new Date() - start);
+  }
+
   render() {
     const {
       arr
@@ -46,7 +59,13 @@ class RenderTest extends React.Component {
 
     return (
       <div onClick={this.foo}>
-        {arr}
+        <HostBefore>
+          {
+            arr.map((e, i) => {
+              return <TC key={i}>{`im TC${i}`}</TC>
+            })
+          }
+        </HostBefore>
         <TC1></TC1>
       </div>
     )

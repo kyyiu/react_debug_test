@@ -1234,8 +1234,10 @@ function commitPlacement(finishedWork: Fiber): void {
     // Clear ContentReset from the effect tag
     parentFiber.flags &= ~ContentReset;
   }
-
+  // let getHostSibling_start = +new Date()
+  // 优化点，place的节点的容器使用hostcomponent
   const before = getHostSibling(finishedWork);
+  // console.log('getHostSibling_end_use_time', +new Date() - getHostSibling_start);
   console.log('commitPlacement_finishedWork_s_before', before);
   // We only have the top Fiber that was inserted but we need to recurse down its
   // children to find all the terminal nodes.

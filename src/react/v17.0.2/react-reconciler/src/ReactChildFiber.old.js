@@ -1296,8 +1296,9 @@ function ChildReconciler(shouldTrackSideEffects) {
 
     // Handle object types
     const isObject = typeof newChild === 'object' && newChild !== null;
-
+    // 对象类型，可能是 REACT_ELEMENT_TYPE 或 REACT_PORTAL_TYPE
     if (isObject) {
+      console.log('reconcileChildFibers', '---', 'isObject', isObject, newChild, newChild.$$typeof);
       switch (newChild.$$typeof) {
         case REACT_ELEMENT_TYPE:
           return placeSingleChild(
