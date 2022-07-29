@@ -516,11 +516,14 @@ function requestRetryLane(fiber: Fiber) {
   return findRetryLane(currentEventWipLanes);
 }
 
+
+// 调度fiber
 export function scheduleUpdateOnFiber(
   fiber: Fiber,
   lane: Lane,
   eventTime: number,
 ) {
+  console.log('scheduleUpdateOnFiber');
   checkForNestedUpdates();
   warnAboutRenderPhaseUpdatesInDEV(fiber);
 

@@ -246,7 +246,6 @@ export function createContainer(
 ): OpaqueRoot {
   return createFiberRoot(containerInfo, tag, hydrate, hydrationCallbacks);
 }
-
 export function updateContainer(
   element: ReactNodeList,
   container: OpaqueRoot,

@@ -60,7 +60,7 @@ import {
 } from 'react-reconciler/src/ReactRootTags';
 
 function ReactDOMRoot(container: Container, options: void | RootOptions) {
-  console.log('rrrr', this);
+  // 创建root容器fiberroot
   this._internalRoot = createRootImpl(container, ConcurrentRoot, options);
 }
 
@@ -99,6 +99,7 @@ ReactDOMRoot.prototype.render = ReactDOMBlockingRoot.prototype.render = function
       }
     }
   }
+  // 只有fiberroot会触发
   updateContainer(children, root, null, null);
 };
 

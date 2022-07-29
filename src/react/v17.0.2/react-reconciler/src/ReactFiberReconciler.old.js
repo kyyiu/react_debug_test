@@ -247,12 +247,14 @@ export function createContainer(
   return createFiberRoot(containerInfo, tag, hydrate, hydrationCallbacks);
 }
 
+// 更新fiberroot容器内容
 export function updateContainer(
   element: ReactNodeList,
   container: OpaqueRoot,
   parentComponent: ?React$Component<any, any>,
   callback: ?Function,
 ): Lane {
+  console.log('updateContainer', element, container, parentComponent, callback);
   if (__DEV__) {
     onScheduleRoot(container, element);
   }
@@ -294,7 +296,7 @@ export function updateContainer(
       );
     }
   }
-
+  // 创建更新对象
   const update = createUpdate(eventTime, lane);
   // Caution: React DevTools currently depends on this property
   // being called "element".
