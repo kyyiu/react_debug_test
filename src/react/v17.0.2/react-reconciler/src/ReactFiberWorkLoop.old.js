@@ -518,6 +518,10 @@ function requestRetryLane(fiber: Fiber) {
 
 
 // 调度fiber
+// render阶段开始于performSyncWorkOnRoot
+// 或
+// performConcurrentWorkOnRoot方法的调用。
+// 这取决于本次更新是同步更新还是异步更新。
 export function scheduleUpdateOnFiber(
   fiber: Fiber,
   lane: Lane,
@@ -565,7 +569,7 @@ export function scheduleUpdateOnFiber(
   // TODO: requestUpdateLanePriority also reads the priority. Pass the
   // priority as an argument to that function and this one.
   const priorityLevel = getCurrentPriorityLevel();
-
+  // 同步
   if (lane === SyncLane) {
     if (
       // Check if we're inside unbatchedUpdates
@@ -732,6 +736,7 @@ function ensureRootIsScheduled(root: FiberRoot, currentTime: number) {
     );
     newCallbackNode = scheduleCallback(
       schedulerPriorityLevel,
+      // 异步render
       performConcurrentWorkOnRoot.bind(null, root),
     );
   }
@@ -781,7 +786,7 @@ function performConcurrentWorkOnRoot(root) {
     // Defensive coding. This is never expected to happen.
     return null;
   }
-
+  // 异步render
   let exitStatus = renderRootConcurrent(root, lanes);
 
   if (
@@ -967,6 +972,7 @@ function markRootSuspended(root, suspendedLanes) {
 
 // This is the entry point for synchronous tasks that don't go
 // through Scheduler
+// 同步任务入口，不需要Scheduler
 function performSyncWorkOnRoot(root) {
   invariant(
     (executionContext & (RenderContext | CommitContext)) === NoContext,
@@ -1518,6 +1524,7 @@ function renderRootSync(root: FiberRoot, lanes: Lanes) {
 
   do {
     try {
+      // 开始同步render
       workLoopSync();
       break;
     } catch (thrownValue) {
@@ -1594,6 +1601,7 @@ function renderRootConcurrent(root: FiberRoot, lanes: Lanes) {
 
   do {
     try {
+      // 开始异步render
       workLoopConcurrent();
       break;
     } catch (thrownValue) {

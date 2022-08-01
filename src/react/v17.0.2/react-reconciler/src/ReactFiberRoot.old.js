@@ -93,8 +93,12 @@ export function createFiberRoot(
 
   // Cyclic construction. This cheats the type system right now because
   // stateNode is any.
+  // 环结构, 欺骗类型系统，因为当前stateNode是any类型
+  // 生成fiberroot的rootfiber，挂到current上
   const uninitializedFiber = createHostRootFiber(tag);
+  // fiberRoot通过current映射到rootFiber
   root.current = uninitializedFiber;
+  // rootFiber通过stateNode映射到fiberroot
   uninitializedFiber.stateNode = root;
 
   initializeUpdateQueue(uninitializedFiber);

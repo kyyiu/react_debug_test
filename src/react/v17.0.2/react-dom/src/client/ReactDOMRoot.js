@@ -60,6 +60,7 @@ import {
 } from 'react-reconciler/src/ReactRootTags';
 
 function ReactDOMRoot(container: Container, options: void | RootOptions) {
+  console.log('ReactDOMRoot', container, ConcurrentRoot, options);
   // 创建root容器fiberroot
   this._internalRoot = createRootImpl(container, ConcurrentRoot, options);
 }
@@ -69,6 +70,7 @@ function ReactDOMBlockingRoot(
   tag: RootTag,
   options: void | RootOptions,
 ) {
+  console.log('ReactDOMBlockingRoot', container);
   this._internalRoot = createRootImpl(container, tag, options);
 }
 
