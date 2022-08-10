@@ -9,6 +9,6 @@
 
 export type RootTag = 0 | 1 | 2;
 
-export const LegacyRoot = 0;
-export const BlockingRoot = 1;
-export const ConcurrentRoot = 2;
+export const LegacyRoot = 0; //ReactDOM.render(<App />, rootNode)
+export const BlockingRoot = 1; //ReactDOM.createBlockingRoot(rootNode).render(<App />)
+export const ConcurrentRoot = 2; // ReactDOM.createRoot(rootNode).render(<App />)

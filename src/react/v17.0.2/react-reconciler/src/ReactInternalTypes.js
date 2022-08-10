@@ -55,6 +55,8 @@ export type Fiber = {|
   // alternate versions of the tree. We put this on a single object for now to
   // minimize the number of objects created during the initial render.
 
+
+  // WorkTag 用来标记 React 中的不同元素，如原生HTML标签元素、Function组件、class组件、Provider组件、Consumer组件、Fragment组件等等。这些通常体现在 fiber 的 tag 值上。
   // Tag identifying the type of fiber.
   tag: WorkTag,
 

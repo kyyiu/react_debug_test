@@ -256,13 +256,14 @@ const CommitContext = /*                */ 0b0100000;
 export const RetryAfterError = /*       */ 0b1000000;
 
 type RootExitStatus = 0 | 1 | 2 | 3 | 4 | 5;
-const RootIncomplete = 0;
+const RootIncomplete = 0; // 未完成
 const RootFatalErrored = 1;
 const RootErrored = 2;
 const RootSuspended = 3;
 const RootSuspendedWithDelay = 4;
-const RootCompleted = 5;
+const RootCompleted = 5;  // 已完成
 
+// 标记 React 执行栈(React execution stack) 中目前所处的环境
 // Describes where we are in the React execution stack
 let executionContext: ExecutionContext = NoContext;
 // The root we're working on
@@ -283,6 +284,7 @@ let workInProgressRootRenderLanes: Lanes = NoLanes;
 let subtreeRenderLanes: Lanes = NoLanes;
 const subtreeRenderLanesCursor: StackCursor<Lanes> = createCursor(NoLanes);
 
+// 标记根节点退出时的状态
 // Whether to root completed, errored, suspended, etc.
 let workInProgressRootExitStatus: RootExitStatus = RootIncomplete;
 // A fatal error, if one is thrown
@@ -352,6 +354,9 @@ let nestedPassiveUpdateCount: number = 0;
 // TODO: Can use a bitmask instead of an array
 let spawnedWorkDuringRender: null | Array<Lane | Lanes> = null;
 
+// 过期时间是根据当前时间计算出来的 (当前时间就是指开始时间)。在 React 中，如果两个 update 是在同一个事件上进行调度的，那么应该把它们的开始时间看作是同步的，实际上两个 update 的开始时间是有差值的，但是可以忽略不计。
+// 换句话说，由于是过期时间决定了 update 是如何批量执行的，我们希望相似优先级并且发生在同一个事件上的 update 接收相同的过期时间。
+// currentEventTime 的获取是通过 requestEventTime() 函数获取的
 // If two updates are scheduled within the same event, we should treat their
 // event times as simultaneous, even if the actual clock time has advanced
 // between the first and second call.
@@ -522,15 +527,20 @@ function requestRetryLane(fiber: Fiber) {
 // 或
 // performConcurrentWorkOnRoot方法的调用。
 // 这取决于本次更新是同步更新还是异步更新。
+// 挂载和更新的核心入口
 export function scheduleUpdateOnFiber(
   fiber: Fiber,
   lane: Lane,
   eventTime: number,
 ) {
   console.log('scheduleUpdateOnFiber');
+  /**
+   * 判断是否hi无限循环的update，如果是就报错。
+   * 比如在componentWillUpdate或者componentDidupdate生命周期中重复调用setState方法，就会发生这种情况。
+   */
   checkForNestedUpdates();
   warnAboutRenderPhaseUpdatesInDEV(fiber);
-
+  // 递归找到rootFiber， 并且逐步根据当前的优先级，把当前fiber到RootFiber的父级链表上所有的优先级都更新了。
   const root = markUpdateLaneFromFiberToRoot(fiber, lane);
   if (root === null) {
     warnAboutUpdateOnUnmountedFiberInDEV(fiber);

@@ -87,6 +87,9 @@ export type RefObject = {|
 |};
 
 export type EventPriority = 0 | 1 | 2;
+// **DiscreteEvent**离散事件，如 click、keydown、focusin 等，这些事件的触发不是连续的
+// **ContinuousEvent**阻塞事件，如 drag、mousemove、scroll 等，这些事件的特点是连续触发，会阻塞渲染
+// **UserBlockingEvent**如 load、animation 等事件
 
 export const DiscreteEvent: EventPriority = 0;
 export const UserBlockingEvent: EventPriority = 1;
