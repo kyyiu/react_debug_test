@@ -35,7 +35,7 @@ class RenderTest extends React.Component {
   foo = () => {
     console.log('HostBefore_start', start = +new Date());
     this.setState({
-      arr: [...this.state.arr, ...Array(100).fill(0)]
+      arr: [...this.state.arr, ...Array(1).fill(0)]
     })
   }
   

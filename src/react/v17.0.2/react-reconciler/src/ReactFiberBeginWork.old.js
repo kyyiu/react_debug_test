@@ -708,6 +708,7 @@ function updateFunctionComponent(
   nextProps: any,
   renderLanes,
 ) {
+  console.log();
   if (__DEV__) {
     if (workInProgress.type !== workInProgress.elementType) {
       // Lazy component props can't be validated in createElement
@@ -3087,7 +3088,7 @@ function beginWork(
   workInProgress: Fiber, // 当前组件对应的Fiber节点, 内存中的Fiber节点
   renderLanes: Lanes,
 ): Fiber | null {
-  console.log('beginWork', workInProgress);
+  console.log('beginWork', current, workInProgress);
   // console.log('bgeginWork_old', current, workInProgress);
   const updateLanes = workInProgress.lanes;
 

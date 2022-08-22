@@ -252,6 +252,7 @@ export function resolveLazyComponentTag(Component: Function): WorkTag {
 
 // This is used to create an alternate fiber to do work on.
 export function createWorkInProgress(current: Fiber, pendingProps: any): Fiber {
+
   let workInProgress = current.alternate;
   if (workInProgress === null) {
     // We use a double buffering pooling technique because we know that we'll
@@ -283,6 +284,7 @@ export function createWorkInProgress(current: Fiber, pendingProps: any): Fiber {
     workInProgress.pendingProps = pendingProps;
     // Needed because Blocks store data on type.
     workInProgress.type = current.type;
+    
 
     // We already have an alternate.
     // Reset the effect tag.
@@ -350,7 +352,6 @@ export function createWorkInProgress(current: Fiber, pendingProps: any): Fiber {
         break;
     }
   }
-
   return workInProgress;
 }
 

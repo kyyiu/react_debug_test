@@ -199,7 +199,7 @@ const classComponentUpdater = {
     const fiber = getInstance(inst); // 获取组件实例的Fiber结构
     const eventTime = requestEventTime(); // 事件时间
     const lane = requestUpdateLane(fiber);  // 优先级
-    console.log(fiber.updateQueue.shared.pending)
+    console.log('enqueueSetState', inst, fiber, fiber.updateQueue.shared.pending)
     const update = createUpdate(eventTime, lane); // 创建updater，数据结构载体
     update.payload = payload; // 挂载要更新的数据信息
     if (callback !== undefined && callback !== null) {
