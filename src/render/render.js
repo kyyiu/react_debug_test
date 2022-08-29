@@ -1,7 +1,31 @@
-import React from "react";
+import React, {useEffect, useState, useRef} from "react";
 let start, end
 
+function useUpdate(
+  callback = () => {},
+  dependences,
+  initialData = false
+) {
+  const [s, sS] = useState(1)
+  const isInitialMount = useRef(true)
+  useEffect(() => {
+    // 第一次,也就是mount阶段 不执行onChange,只有后续更新的时候才调用
+    // 因为在页面中,一般mount阶段会写请求数据之类的操作
+    if (isInitialMount.current && !initialData) {
+      isInitialMount.current = false
+    } else {
+      callback()
+    }
+  }, dependences)
+}
+
+
+
+
 function TC(p) {
+  useUpdate(() => {
+    console.log('TcT',p.count)
+  }, [p.count])
   return (
     <div className="tc">
       <span>{p.children}</span>
@@ -18,6 +42,12 @@ function TC1() {
 }
 
 function HostBefore(prop) {
+  useEffect(() => {
+    console.log('uffff1');
+    return () => {
+      console.log('uffff2');
+    }
+  }, [])
   return <div>
     {
       prop.children
@@ -59,13 +89,16 @@ class RenderTest extends React.Component {
 
     return (
       <div onClick={this.foo}>
-        <HostBefore>
+        {
+          arr.length ?
+          <HostBefore>
           {
             arr.map((e, i) => {
-              return <TC key={i}>{`im TC${i}`}</TC>
+              return <TC key={i} count={arr.length}>{`im TC${i}`}</TC>
             })
           }
-        </HostBefore>
+        </HostBefore> : null
+        }
         <TC1></TC1>
       </div>
     )

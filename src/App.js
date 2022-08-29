@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 import State from './components/State'
 import LanesDemo from './components/LanesDemo'
@@ -25,7 +25,8 @@ import R from './render/render'
   }
 }*/
 function App() {
-
+  const [r, setR] = useState(false)
+  
   // 事件系统
   // return <EventDemo/>
 
@@ -50,6 +51,7 @@ function App() {
   // diff 算法
   // return <Diff ref={'diffRef'}/>
   const change = () => {
+    setR(!r)
     // fiberRoot.cur.unmount()
     // console.log(fiberRoot.cur);
     // fiberRoot.cur.render('hello')
