@@ -250,6 +250,7 @@ export function resolveLazyComponentTag(Component: Function): WorkTag {
   return IndeterminateComponent;
 }
 
+// 复制一个当前显示中的fiber
 // This is used to create an alternate fiber to do work on.
 export function createWorkInProgress(current: Fiber, pendingProps: any): Fiber {
 

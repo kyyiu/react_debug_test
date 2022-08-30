@@ -14,6 +14,9 @@ function useUpdate(
     if (isInitialMount.current && !initialData) {
       isInitialMount.current = false
     } else {
+      if (s=== 1) {
+        sS(2)
+      }
       callback()
     }
   }, dependences)

@@ -349,6 +349,7 @@ export function renderWithHooks<Props, SecondArg>(
 ): any {
   renderLanes = nextRenderLanes;
   currentlyRenderingFiber = workInProgress;
+  console.log('renderWithHooks', current, currentlyRenderingFiber, Component);
 
   if (__DEV__) {
     hookTypesDev =
@@ -1114,6 +1115,7 @@ function mountState<S>(
   initialState: (() => S) | S,
 ): [S, Dispatch<BasicStateAction<S>>] {
   const hook = mountWorkInProgressHook();
+  // 挂载时初始值是函数则调用将返回值当作初始值
   if (typeof initialState === 'function') {
     // $FlowFixMe: Flow doesn't like mixed types
     initialState = initialState();
@@ -1125,6 +1127,8 @@ function mountState<S>(
     lastRenderedReducer: basicStateReducer,
     lastRenderedState: (initialState: any),
   });
+
+  // 柯里化把dispatchAction的第一二个参数提前传入
   const dispatch: Dispatch<
     BasicStateAction<S>,
   > = (queue.dispatch = (dispatchAction.bind(
@@ -1135,6 +1139,7 @@ function mountState<S>(
   return [hook.memoizedState, dispatch];
 }
 
+// 本质上updateState就是调用了updateReducer
 function updateState<S>(
   initialState: (() => S) | S,
 ): [S, Dispatch<BasicStateAction<S>>] {
@@ -1647,6 +1652,7 @@ function dispatchAction<S, A>(
   queue: UpdateQueue<S, A>,
   action: A,
 ) {
+  console.log('dispatchAction', fiber, queue, action);
   if (__DEV__) {
     if (typeof arguments[3] === 'function') {
       console.error(
@@ -1659,7 +1665,7 @@ function dispatchAction<S, A>(
 
   const eventTime = requestEventTime();
   const lane = requestUpdateLane(fiber);
-
+  //  创建update对象
   const update: Update<S, A> = {
     lane,
     action,
@@ -1735,6 +1741,7 @@ function dispatchAction<S, A>(
         warnIfNotCurrentlyActingUpdatesInDev(fiber);
       }
     }
+    // 调度更新
     scheduleUpdateOnFiber(fiber, lane, eventTime);
   }
 
@@ -1772,7 +1779,7 @@ export const ContextOnlyDispatcher: Dispatcher = {
 
   unstable_isNewReconciler: enableNewReconciler,
 };
-
+// 挂载时使用的hook方法
 const HooksDispatcherOnMount: Dispatcher = {
   readContext,
 
@@ -1793,7 +1800,7 @@ const HooksDispatcherOnMount: Dispatcher = {
 
   unstable_isNewReconciler: enableNewReconciler,
 };
-
+// 更新时使用的hook方法
 const HooksDispatcherOnUpdate: Dispatcher = {
   readContext,
 
