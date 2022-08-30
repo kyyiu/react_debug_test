@@ -300,6 +300,7 @@ export function updateContainer(
   const update = createUpdate(eventTime, lane);
   // Caution: React DevTools currently depends on this property
   // being called "element".
+  // fiberroot把App先挂到更新队列上
   update.payload = {element};
 
   callback = callback === undefined ? null : callback;

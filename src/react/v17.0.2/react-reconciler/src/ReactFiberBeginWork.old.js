@@ -231,6 +231,7 @@ if (__DEV__) {
   didWarnAboutDefaultPropsOnFunctionComponent = {};
 }
 
+// 创建fiber
 export function reconcileChildren(
   current: Fiber | null,
   workInProgress: Fiber,

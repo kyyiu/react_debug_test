@@ -1,4 +1,5 @@
-import React, {useEffect, useState, useRef} from "react";
+import React, {useEffect, useState, useRef, useLayoutEffect} from "react";
+import { diff } from "semver";
 let start, end
 
 function useUpdate(
@@ -26,9 +27,6 @@ function useUpdate(
 
 
 function TC(p) {
-  useUpdate(() => {
-    console.log('TcT',p.count)
-  }, [p.count])
   return (
     <div className="tc">
       <span>{p.children}</span>
@@ -58,6 +56,33 @@ function HostBefore(prop) {
   </div>
 }
 
+
+// 相同key
+function AET() {
+  const difficult = true
+  // 复杂类型数据会出现的问题,相同type第n次相同的key会把n-1次的key引用占据，导致第n-1次的z真实dom遗留在页面无法清除
+  const [arr, sArr] = difficult ? useState([{id: 1, name: '1'},{id: 1, name: '2'}, {id: 1, name: 'x'}]) : useState([1,1,1])
+  useLayoutEffect(() => {
+    console.log('effffff', arr);
+  }, [arr])
+  function add() {
+    difficult ?  sArr([{id: 1, name: 'z'}, {id: 2, name: 's'}, ...arr]) : sArr([...arr, 1,2])
+  }
+  function del() {
+    difficult ? sArr([{id: 2, name: 'sb2'},{id: 2, name: 'sb'}]) : sArr([1])
+  }
+
+  return <div>
+    {
+      arr.map((e, i) => <div key={difficult ? e.id : e}>
+        <TC>{difficult ? e.name : i}</TC>
+      </div>)
+    }
+    <button onClick={add}>+</button>
+    <button onClick={del}>-</button>
+  </div>
+}
+
 class RenderTest extends React.Component {
 
   state = {
@@ -67,9 +92,9 @@ class RenderTest extends React.Component {
 
   foo = () => {
     console.log('HostBefore_start', start = +new Date());
-    this.setState({
-      arr: [...this.state.arr, ...Array(1).fill(0)]
-    })
+    // this.setState({
+    //   arr: [...this.state.arr, ...Array(1).fill(0)]
+    // })
   }
   
   // React.createElement("div", {
@@ -103,6 +128,7 @@ class RenderTest extends React.Component {
         </HostBefore> : null
         }
         <TC1></TC1>
+        <AET></AET>
       </div>
     )
     
