@@ -1,5 +1,5 @@
 import React, {useEffect, useState, useRef, useLayoutEffect} from "react";
-import { diff } from "semver";
+import { fiberRoot } from '../global';
 let start, end
 
 function useUpdate(
@@ -60,22 +60,22 @@ function HostBefore(prop) {
 // 相同key
 function AET() {
   const difficult = true
-  // 复杂类型数据会出现的问题,相同type第n次相同的key会把n-1次的key引用占据，导致第n-1次的z真实dom遗留在页面无法清除
+  // 相同type第n次相同的key会把n-1次的key引用占据，导致第n-1次的z真实dom遗留在页面无法清除
   const [arr, sArr] = difficult ? useState([{id: 1, name: '1'},{id: 1, name: '2'}, {id: 1, name: 'x'}]) : useState([1,1,1])
-  useLayoutEffect(() => {
-    console.log('effffff', arr);
-  }, [arr])
+  // useLayoutEffect(() => {
+  //   console.log('effffff', arr, fiberRoot.cur);
+  // }, [arr])
   function add() {
-    difficult ?  sArr([{id: 1, name: 'z'}, {id: 2, name: 's'}, ...arr]) : sArr([...arr, 1,2])
+    difficult ?  sArr([ ...arr, {id: 1, name: 'z'}, {id: 4, name: 's'}]) : sArr([1,2, ...arr])
   }
   function del() {
-    difficult ? sArr([{id: 2, name: 'sb2'},{id: 2, name: 'sb'}]) : sArr([1])
+    difficult ? sArr([{id: 2, name: 'sb2'},{id: 2, name: 'sb4'}]) : sArr([1])
   }
 
   return <div>
     {
       arr.map((e, i) => <div key={difficult ? e.id : e}>
-        <TC>{difficult ? e.name : i}</TC>
+        {difficult ? e.name : i}
       </div>)
     }
     <button onClick={add}>+</button>
