@@ -58,6 +58,7 @@ function HostBefore(prop) {
 
 
 // 相同key
+let c = 0
 function AET() {
   const difficult = true
   // 相同type第n次相同的key会把n-1次的key引用占据，导致第n-1次的z真实dom遗留在页面无法清除
@@ -66,10 +67,10 @@ function AET() {
   //   console.log('effffff', arr, fiberRoot.cur);
   // }, [arr])
   function add() {
-    difficult ?  sArr([ ...arr, {id: 1, name: 'z'}, {id: 4, name: 's'}]) : sArr([1,2, ...arr])
+    difficult ?  sArr([ ...arr, {id: 1, name: 'z'}, {id: 2, name: 's'}]) : sArr([...arr,1,2])
   }
   function del() {
-    difficult ? sArr([{id: 2, name: 'sb2'},{id: 2, name: 'sb4'}]) : sArr([1])
+    difficult ? sArr([{id: 2, name: 'sb2'},{id: 2, name: 'sb4'}]) : sArr([2, 2])
   }
 
   return <div>
@@ -81,6 +82,37 @@ function AET() {
     <button onClick={add}>+</button>
     <button onClick={del}>-</button>
   </div>
+}
+
+function A() {
+  function a(e, a) {
+    a.stopPropagation()
+    console.log('cccc', e, a);
+  }
+  return <div onClick={(e) => a('xxx',e)}>dddd</div>
+}
+
+const useData = (ini) => {
+  let fi = true
+  const [data, setData] = useState(ini)
+  const rf = useRef()
+  console.log('useDataf',rf);
+  useEffect(()=> {
+    if (rf.current) {
+      console.log('useData', data, rf);
+    }
+    
+    rf.current = true
+    return () => {
+      console.log('useDtaum');
+    }
+  }, [data])
+  return [data, setData]
+}
+
+function U() {
+  const [d, sd] = useData(1)
+  return <div onClick={() => sd(d+1)}>当前d值: {d}</div>
 }
 
 class RenderTest extends React.Component {
@@ -125,10 +157,9 @@ class RenderTest extends React.Component {
               return <TC key={i} count={arr.length}>{`im TC${i}`}</TC>
             })
           }
-        </HostBefore> : null
+          </HostBefore> : null
         }
-        <TC1></TC1>
-        <AET></AET>
+        <U></U>
       </div>
     )
     
