@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import ReactDOM from 'react-dom';
 import State from './components/State'
 import LanesDemo from './components/LanesDemo'
@@ -17,6 +17,7 @@ import { fiberRoot } from './global';
 
 // import BW from './beginwork'
 import R from './render/render'
+import { useDidMount } from './hooks/useDidMount';
 
 // propsDiff
 /*class App extends React.Component {
@@ -24,9 +25,19 @@ import R from './render/render'
     return <PropsDiff/>
   }
 }*/
+
+function I(p) {
+  const {data} = p
+  console.log('render--I');
+  return <div>{data}</div>
+}
+
 function App() {
+  useDidMount()
   const [r, setR] = useState(false)
-  
+  useEffect(() => {
+    console.log('hh');
+  }, [])
   // 事件系统
   // return <EventDemo/>
 
@@ -51,11 +62,14 @@ function App() {
   // diff 算法
   // return <Diff ref={'diffRef'}/>
   const change = () => {
+    console.log('ffff', fiberRoot.cur);
     setR(!r)
     // fiberRoot.cur.unmount()
     // console.log(fiberRoot.cur);
     // fiberRoot.cur.render('hello')
   }
+
+  const x = Math.random()
 
 
   // beginWork
@@ -64,6 +78,14 @@ function App() {
     <R></R>
     <div>
       <span onClick={change}>lll</span>
+    </div>
+    <div>
+      {
+        useMemo(() => {
+          console.log('render--', x);
+          return <I data={x}></I>
+        }, [x])
+      }
     </div>
   </>
 }

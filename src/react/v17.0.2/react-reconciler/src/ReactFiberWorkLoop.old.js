@@ -1902,6 +1902,7 @@ function resetChildLanes(completedWork: Fiber) {
   completedWork.childLanes = newChildLanes;
 }
 
+// commit阶段入口
 function commitRoot(root) {
   const renderPriorityLevel = getCurrentPriorityLevel();
   runWithPriority(
@@ -2025,7 +2026,6 @@ function commitRootImpl(root, renderPriorityLevel) {
     firstEffect = finishedWork.firstEffect;
   }
 
-  //// before mutation 开始
   if (firstEffect !== null) {
     let previousLanePriority;
     if (decoupleUpdatePriorityFromScheduler) {
@@ -2049,6 +2049,7 @@ function commitRootImpl(root, renderPriorityLevel) {
     // state of the host tree right before we mutate it. This is where
     // getSnapshotBeforeUpdate is called.
     // 处理focus状态
+    // before mutation 开始
     focusedInstanceHandle = prepareForCommit(root.containerInfo);
     shouldFireAfterActiveInstanceBlur = false;
 
@@ -2083,6 +2084,7 @@ function commitRootImpl(root, renderPriorityLevel) {
     }
 
     // The next phase is the mutation phase, where we mutate the host tree.
+    // mutation阶段
     nextEffect = firstEffect;
     do {
       if (__DEV__) {
@@ -2124,6 +2126,7 @@ function commitRootImpl(root, renderPriorityLevel) {
     // The next phase is the layout phase, where we call effects that read
     // the host tree after it's been mutated. The idiomatic use case for this is
     // layout, but class component lifecycles also fire here for legacy reasons.
+    // layout阶段
     nextEffect = firstEffect;
     do {
       if (__DEV__) {
@@ -2295,6 +2298,7 @@ function commitRootImpl(root, renderPriorityLevel) {
 }
 
 function commitBeforeMutationEffects() {
+  
   while (nextEffect !== null) {
     const current = nextEffect.alternate;
 
@@ -2345,7 +2349,15 @@ function commitBeforeMutationEffects() {
     nextEffect = nextEffect.nextEffect;
   }
 }
-
+/**
+ * mutation阶段
+ * commitMutationEffects会遍历effectList，对每个Fiber节点执行如下三个操作;
+ * 根据ContentReset effectTag重置文字节点;
+ * 更新ref;
+ * 根据effectTag分别处理，其中effectTag包括(Placement | Update | Deletion | Hydrating);
+ * @param {*} root 
+ * @param {*} renderPriorityLevel 
+ */
 function commitMutationEffects(
   root: FiberRoot,
   renderPriorityLevel: ReactPriorityLevel,
@@ -2437,7 +2449,18 @@ function commitMutationEffects(
     nextEffect = nextEffect.nextEffect;
   }
 }
-
+/**
+ * layout阶段
+ * 该阶段的代码都是在DOM渲染完成（mutation阶段完成）后执行的。
+ * 该阶段触发的生命周期钩子和hook可以直接访问到已经改变后的DOM，即该阶段是可以参与DOM layout的阶段;
+ * layout阶段也是遍历effectList，执行函数;
+ * 具体执行的函数是commitLayoutEffects;
+ * commitLayoutEffects一共做了两件事：
+ * commitLayoutEffectOnFiber（调用生命周期钩子和hook相关操作）
+ * commitAttachRef（赋值 ref）
+ * @param {*} root 
+ * @param {*} committedLanes 
+ */
 function commitLayoutEffects(root: FiberRoot, committedLanes: Lanes) {
   if (__DEV__) {
     if (enableDebugTracing) {
@@ -2486,7 +2509,10 @@ function commitLayoutEffects(root: FiberRoot, committedLanes: Lanes) {
     markLayoutEffectsStopped();
   }
 }
-
+/**
+ * 设置优先级，并执行flushPassiveEffectsImpl
+ * @returns 
+ */
 export function flushPassiveEffects(): boolean {
   // Returns whether passive effects were flushed.
   if (pendingPassiveEffectsRenderPriority !== NoSchedulerPriority) {
@@ -2565,6 +2591,13 @@ function invokePassiveEffectCreate(effect: HookEffect): void {
   effect.destroy = create();
 }
 
+/**
+ * flushPassiveEffectsImpl主要做三件事;
+ * 调用该useEffect在上一次render时的销毁函数;
+ * 调用该useEffect在本次render时的回调函数;
+ * 果存在同步任务，不需要等待下次事件循环的宏任务，提前执行他
+ * @returns 
+ */
 function flushPassiveEffectsImpl() {
   if (rootWithPendingPassiveEffects === null) {
     return false;
@@ -2608,6 +2641,7 @@ function flushPassiveEffectsImpl() {
   // First pass: Destroy stale passive effects.
   const unmountEffects = pendingPassiveHookEffectsUnmount;
   pendingPassiveHookEffectsUnmount = [];
+  // 遍历副作用,i为effect钩子，i+1为挂载钩子的fiber
   for (let i = 0; i < unmountEffects.length; i += 2) {
     const effect = ((unmountEffects[i]: any): HookEffect);
     const fiber = ((unmountEffects[i + 1]: any): Fiber);
@@ -2621,7 +2655,7 @@ function flushPassiveEffectsImpl() {
         alternate.flags &= ~PassiveUnmountPendingDev;
       }
     }
-
+    // 调用该useEffect在上一次render时的销毁函数;
     if (typeof destroy === 'function') {
       if (__DEV__) {
         setCurrentDebugFiberInDEV(fiber);

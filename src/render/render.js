@@ -94,10 +94,12 @@ function A() {
 
 const useData = (ini) => {
   let fi = true
+  const [r,sr] = useState(false)
   const [data, setData] = useState(ini)
   const rf = useRef()
   console.log('useDataf',rf);
   useEffect(()=> {
+    sr(!r)
     if (rf.current) {
       console.log('useData', data, rf);
     }

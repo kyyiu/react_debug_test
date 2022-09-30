@@ -278,6 +278,7 @@ export function ensureListeningTo(
         );
       }
     }
+    console.log('fff2', reactPropEvent, targetElement);
     listenToReactEvent(
       reactPropEvent,
       ((rootContainerElement: any): Element),

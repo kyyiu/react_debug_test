@@ -12,7 +12,7 @@ type Node = {|
   id: number,
   sortIndex: number,
 |};
-
+// 堆结构
 export function push(heap: Heap, node: Node): void {
   const index = heap.length;
   heap.push(node);

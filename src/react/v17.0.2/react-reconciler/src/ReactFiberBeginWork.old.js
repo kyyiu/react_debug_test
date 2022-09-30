@@ -3112,7 +3112,9 @@ function beginWork(
   }
 
   if (current !== null) {
+    // 旧值props
     const oldProps = current.memoizedProps;
+    // 本次新生成的props值
     const newProps = workInProgress.pendingProps;
 
     if (

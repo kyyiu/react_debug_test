@@ -146,7 +146,7 @@ if (current !== null && workInProgress.stateNode != null) {
       workInProgress,
     );
 
-    //DOM节点插入
+    // DOM节点插入
     appendAllChildren(instance, workInProgress, false, false);
 
     // 将DOM节点挂载到fiber的stateNode上
@@ -396,8 +396,8 @@ if (current !== null && workInProgress.stateNode != null) {
         currentHostContext,
       )
      ) {
-       // 最终会依据textarea的autoFocus属性
-       // 来决定是否更新fiber
+      //  最终会依据textarea的autoFocus属性
+      //  来决定是否更新fiber
        markUpdate(workInProgress);
      }
 }

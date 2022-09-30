@@ -91,6 +91,7 @@ export const now =
   initialTimeMs < 10000 ? Scheduler_now : () => Scheduler_now() - initialTimeMs;
 
 export function getCurrentPriorityLevel(): ReactPriorityLevel {
+  console.log(Scheduler_getCurrentPriorityLevel, '');
   switch (Scheduler_getCurrentPriorityLevel()) {
     case Scheduler_ImmediatePriority:
       return ImmediatePriority;
