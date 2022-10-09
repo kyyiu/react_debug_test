@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
+import App2 from './App2';
 import { fiberRoot } from './global';
 
 const root = document.getElementById('root')
@@ -10,7 +11,9 @@ console.log(fiberRoot, 'mm');
 // Concurrent mode
 const cur = ReactDOM.createRoot(root);
 fiberRoot.cur = cur
-cur.render(<App/>)
+
+// cur.render(<App/>)
+cur.render(<App2/>)
 
 
 

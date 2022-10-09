@@ -884,6 +884,7 @@ function commitUnmount(
 
           let effect = firstEffect;
           do {
+            // 卸载时调用销毁函数, 如果hook依赖项为空，这里就是保底调用一次销毁
             const {destroy, tag} = effect;
             if (destroy !== undefined) {
               if ((tag & HookPassive) !== NoHookEffect) {
