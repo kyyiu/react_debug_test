@@ -32,7 +32,7 @@ function I(p) {
   return <div>{data}</div>
 }
 
-function App() {
+function App2() {
   useDidMount()
   const [r, setR] = useState(false)
   useEffect(() => {
@@ -88,6 +88,31 @@ function App() {
       }
     </div>
   </>
+}
+
+let mountNode = null;
+
+function Dialog() {
+  function d() {
+    if (mountNode) {
+      ReactDOM.unmountComponentAtNode(mountNode)
+      console.log('aaa', fiberRoot);
+    }
+  }
+  return <div onClick={d}>456</div>
+}
+
+function App() {
+  const [s, ss] = useState(1)
+  function r() {
+    if (!mountNode) {
+      mountNode = document.createElement('div');
+      document.body.appendChild(mountNode);
+    }
+    ss(s+1)
+    ReactDOM.render(<Dialog/>, mountNode)
+  }
+  return <div onClick={r}>123{s}</div>
 }
 
 export default App;
