@@ -24,3 +24,10 @@ export default function SameKey(params) {
     <button onClick={del}>-</button>
   </div>
 }
+
+// export default function X() {
+//   return <div>
+//     <div>1</div>
+//     <div>2</div>
+//   </div>
+// }

@@ -329,6 +329,7 @@ function ChildReconciler(shouldTrackSideEffects) {
       if (existingChild.key !== null) {
         existingChildren.set(existingChild.key, existingChild);
       } else {
+        // 没有key则用下标当作key
         existingChildren.set(existingChild.index, existingChild);
       }
       existingChild = existingChild.sibling;
@@ -796,10 +797,10 @@ function ChildReconciler(shouldTrackSideEffects) {
   }
   // 多节点diff
   function reconcileChildrenArray(
-    returnFiber: Fiber,
-    currentFirstChild: Fiber | null,
-    newChildren: Array<*>,
-    lanes: Lanes,
+    returnFiber: Fiber,  // returnFiber：currentFirstChild的父级fiber节点
+    currentFirstChild: Fiber | null,  // currentFirstChild：当前执行更新任务的WIP（fiber）节点
+    newChildren: Array<*>, //  newChildren：组件的render方法渲染出的新的ReactElement节点
+    lanes: Lanes, //lanes：优先级相关
   ): Fiber | null {
     // This algorithm can't optimize by searching from both ends since we
     // don't have backpointers on fibers. I'm trying to see how far we can get
@@ -829,21 +830,23 @@ function ChildReconciler(shouldTrackSideEffects) {
       }
     }
 
-    // 构建后的第一个子节点，也就是 return 回去的节点
+    // 构建后的第一个子节点，也就是 return 回去的节点(diff之后的新fiber链表的第一个fiber)
     let resultingFirstChild: Fiber | null = null;
     // 前一个新节点，用来接 sibling 指针的
     let previousNewFiber: Fiber | null = null;
-    // 旧节点遍历指针
+    // 旧节点遍历指针, 新的child节点会和它进行比较
     let oldFiber = currentFirstChild;
     // 最后一个可复用的节点在oldFiber中的位置索引
     let lastPlacedIndex = 0;
-    // newChildren的遍历索引
+    // newChildren的遍历索引, 存储遍历到的新节点的索引
     let newIdx = 0;
-    // oldFiber的遍历索引
+    // oldFiber的遍历索引, 记录目前遍历到的oldFiber的下一个节点
     let nextOldFiber = null;
     // 第一次遍历， 同时遍历oldFiber和newChildren
+    // 该轮遍历来处理节点更新，依据节点是否可复用来决定是否中断遍历
     for (; oldFiber !== null && newIdx < newChildren.length; newIdx++) {
       // 老节点的位置大于新节点的位置, 不满足第一轮遍历规则（按序遍历
+      // newChildren遍历完了，oldFiber链没有遍历完，此时需要中断遍历
       if (oldFiber.index > newIdx) {
         // 记录当前遍历位置
         nextOldFiber = oldFiber;
@@ -852,13 +855,16 @@ function ChildReconciler(shouldTrackSideEffects) {
         nextOldFiber = oldFiber.sibling;
       }
       // 复用处理
+      // 生成新的节点，判断key与tag是否相同就在updateSlot中
+      // 对DOM类型的元素来说，key 和 tag都相同才会复用oldFiber
+      // 并返回出去，否则返回null
       const newFiber = updateSlot(
         returnFiber,
         oldFiber,
         newChildren[newIdx],
         lanes,
       );
-      // key不同， 跳出第一次循环
+      // newFiber为 null说明 key 或 tag 不同，节点不可复用，中断遍历
       if (newFiber === null) {
         // TODO: This breaks on empty slots like null children. That's
         // unfortunate because it triggers the slow path all the time. We need
@@ -875,9 +881,16 @@ function ChildReconciler(shouldTrackSideEffects) {
         if (oldFiber && newFiber.alternate === null) {
           // We matched the slot, but we didn't reuse the existing fiber, so we
           // need to delete the existing child.
+          // newFiber.alternate 等同于 oldFiber.alternate
+          // oldFiber为WIP节点，它的alternate 就是 current节点
+
+          // oldFiber存在，并且经过更新后的新fiber节点它还没有current节点,
+          // 说明更新后展现在屏幕上不会有current节点，而更新后WIP
+          // 节点会称为current节点，所以需要删除已有的WIP节点
           deleteChild(returnFiber, oldFiber);
         }
       }
+      // 记录固定节点的位置
       lastPlacedIndex = placeChild(newFiber, lastPlacedIndex, newIdx);
       // 没有前一个新节点，表示是新节点的头一个
       if (previousNewFiber === null) {
@@ -928,6 +941,8 @@ function ChildReconciler(shouldTrackSideEffects) {
     }
 
     // Add all children to a key map for quick lookups.
+    // 执行到这是都没遍历完的情况，把剩余的旧子节点放入一个以key为键,值为oldFiber节点的map中
+    // 这样在基于oldFiber节点新建新的fiber节点时，可以通过key快速地找出oldFiber
     const existingChildren = mapRemainingChildren(returnFiber, oldFiber);
 
     // Keep scanning and use the map to restore deleted items as moves.
@@ -950,7 +965,9 @@ function ChildReconciler(shouldTrackSideEffects) {
             // current, that means that we reused the fiber. We need to delete
             // it from the child list so that we don't add it to the deletion
             // list.
-            // 删除旧节点的映射
+            // 如果newFiber的alternate不为空，则说明newFiber不是新增的。
+            // 也就说明着它是基于map中的oldFiber节点新建的,意味着oldFiber已经被使用了
+            // 所以删除旧节点的映射, 因为下面会将剩余的节点全部标记删除
             existingChildren.delete(
               newFiber.key === null ? newIdx : newFiber.key,
             );

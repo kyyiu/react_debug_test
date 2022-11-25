@@ -14,7 +14,7 @@ const cur = ReactDOM.createRoot(root);
 fiberRoot.cur = cur
 
 // cur.render(<App/>)
-cur.render(<App/>)
+cur.render(<App3/>)
 
 
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import ReactDOM from 'react-dom';
 import State from './components/State'
 import LanesDemo from './components/LanesDemo'
@@ -102,6 +102,9 @@ function Dialog() {
   return <div onClick={d}>456</div>
 }
 
+const rf = React.createRef()
+const rf2 = React.createRef()
+
 function App() {
   const [s, ss] = useState(1)
   function r() {
@@ -112,7 +115,13 @@ function App() {
     ss(s+1)
     ReactDOM.render(<Dialog/>, mountNode)
   }
-  return <div onClick={r}>123{s}</div>
+  useEffect(() => {
+    console.log('ffffffffffffff', rf, rf2);
+  }, [])
+  return <div>123{s}
+    <span ref={rf}>hhh</span>
+    <I data={'llll'} ref={rf2}></I>
+  </div>
 }
 
 export default App;
