@@ -432,7 +432,6 @@ export function createElement(type, config, children) {
     props,
   );
   console.log('xxa', el);
-  debugger
   return el
 }
 

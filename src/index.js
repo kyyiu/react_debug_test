@@ -4,6 +4,7 @@ import './index.css';
 import App from './App';
 import App2 from './App2';
 import App3 from './DiffApp'
+import Drawer from './drawer';
 import { fiberRoot } from './global';
 
 const root = document.getElementById('root')
@@ -14,7 +15,7 @@ const cur = ReactDOM.createRoot(root);
 fiberRoot.cur = cur
 
 // cur.render(<App/>)
-cur.render(<App3/>)
+cur.render(<Drawer/>)
 
 
 
